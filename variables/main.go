@@ -9,5 +9,4 @@ func main() {
 
 	var1, var2 := "teste1", "teste2"
 	fmt.Println(var1, var2)
-
 }
