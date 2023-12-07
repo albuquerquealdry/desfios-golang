@@ -2,6 +2,7 @@ package main
 
 func main() {
 	tarefas := make(chan int, 45)
+	resultados := make
 }
 
 func fibonacci(posicao uint) uint {
