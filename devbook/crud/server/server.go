@@ -139,3 +139,76 @@ func GetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 }
+
+func UpdateUser(w http.ResponseWriter, r *http.Request) {
+	param := mux.Vars(r)
+	ID, erro := strconv.ParseUint(param["id"], 10, 32)
+	if erro != nil {
+		w.Write([]byte("[ERROR-SYSTEM][Error Parameter covert to int]"))
+		return
+	}
+
+	body, erro := ioutil.ReadAll(r.Body)
+	if erro != nil {
+		w.Write([]byte("[ERROR-SYSTEM][Error read to parameter]"))
+		return
+	}
+	var user user
+
+	if erro := json.Unmarshal(body, &user); erro != nil {
+		w.Write([]byte("[ERROR-SYSTEM][Error to convert user for struct]"))
+		return
+	}
+
+	db, erro := banco.Connect()
+	if erro != nil {
+		w.Write([]byte("[ERROR-SYSTEM][Error Database connect]"))
+		return
+	}
+	defer db.Close()
+
+	statement, erro := db.Prepare("update usuarios set nome = ?, email = ?  where id = ?")
+	if erro != nil {
+		w.Write([]byte("[ERROR-SYSTEM][Statement erro]"))
+		return
+	}
+
+	defer statement.Close()
+
+	if _, erro := statement.Exec(user.Name, user.Email, ID); erro != nil {
+		w.Write([]byte("[ERROR-SYSTEM][Erro exec query]"))
+		return
+	}
+	w.Write([]byte(fmt.Sprintf("[INFO][Success insert user %d]", user.Name)))
+
+}
+
+func DeleteUser(w http.ResponseWriter, r *http.Request) {
+	param := mux.Vars(r)
+	ID, erro := strconv.ParseUint(param["id"], 10, 32)
+	if erro != nil {
+		w.Write([]byte("[ERROR-SYSTEM][Error Parameter covert to int]"))
+		return
+	}
+
+	db, erro := banco.Connect()
+	if erro != nil {
+		w.Write([]byte("[ERROR-SYSTEM][Error Database connect]"))
+		return
+	}
+	defer db.Close()
+
+	statement, erro := db.Prepare("delete from usuarios where id = ?")
+	if erro != nil {
+		w.Write([]byte("[ERROR-SYSTEM][Erro make statement]"))
+		return
+	}
+
+	defer statement.Close()
+
+	if _, erro := statement.Exec(ID); erro != nil {
+		w.Write([]byte("[ERROR-SYSTEM][Erro delete user]"))
+		return
+	}
+	w.Write([]byte(fmt.Sprintf("[INFO][Success delete user %d]", ID)))
+}
